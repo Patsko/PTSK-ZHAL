@@ -7,17 +7,15 @@
 #define ZHAL_H
 
 /*
- *
+ * Typedefs
  */
 
-
-
 #ifndef uint8_t
-#define uint8_t unsigned char
+typedef unsigned char uint8_t;
 #endif
 
 #ifndef uint16_t
-#define uint16_t unsigned int
+typedef unsigned int uint16_t;
 #endif
 
 #ifndef bool_t
@@ -34,11 +32,25 @@ typedef enum Enable_enum {
 } enable_t;
 #endif
 
-#define ZHAL_GPIO
-#ifdef ZHAL_GPIO
+
+/*
+ * Compilation defines
+ */
+
+#define SYSTICK_TIMER   ZHAL_TIMER_0
+
+#define ZHAL_USE_GPIO   1
+#define ZHAL_USE_TIMER  1
+
+#if ZHAL_USE_GPIO
 #include "zhal_gpio.h"
 #endif
 
+#if ZHAL_USE_TIMER
+#include "zhal_timer.h"
+#endif
+
+#include "zhal_mcu.h"
 
 
 #endif // ZHAL_H

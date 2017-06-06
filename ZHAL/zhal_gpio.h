@@ -26,33 +26,44 @@
  * Typedefs
  */
 
+typedef enum ZHAL_GPIO_Subregister {
+    ZHAL_GPIO_REG_DATA_DIRECTION = 1,
+    ZHAL_GPIO_REG_ALT_FUNCTION,
+    ZHAL_GPIO_REG_OPEN_DRAIN,
+    ZHAL_GPIO_REG_HIGH_DRIVE,
+    ZHAL_GPIO_REG_STOP_MODE,
+    ZHAL_GPIO_REG_PULL_UP,
+    ZHAL_GPIO_REG_ALT_FUNCTION_SET_1,
+    ZHAL_GPIO_REG_ALT_FUNCTION_SET_2,
+} ZHAL_GPIO_Subregister_t;
+
 typedef enum ZHAL_GPIO_Port {
-    GPIO_PORTA = 0x00,
-    GPIO_PORTB,
-    GPIO_PORTC,
-    GPIO_PORTD
+    ZHAL_GPIO_A = 0x00,
+    ZHAL_GPIO_B,
+    ZHAL_GPIO_C,
+    ZHAL_GPIO_D
 } ZHAL_GPIO_Port_t;
 
 typedef enum ZHAL_GPIO_Direction {
-    GPIO_OUTPUT = 0,
-    GPIO_INPUT
+    ZHAL_GPIO_OUTPUT = 0,
+    ZHAL_GPIO_INPUT
 } ZHAL_GPIO_Direction_t;
 
 typedef enum ZHAL_GPIO_Alternate_Function {
-    GPIO_NORMAL = 0,
-    GPIO_AF1,
-    GPIO_AF2,
-    GPIO_AF3,
-    GPIO_AF4
+    ZHAL_GPIO_NORMAL = 0,
+    ZHAL_GPIO_AF1,
+    ZHAL_GPIO_AF2,
+    ZHAL_GPIO_AF3,
+    ZHAL_GPIO_AF4
 } ZHAL_GPIO_Alternate_Function_t;
 
 typedef struct ZHAL_GPIO_Config {
     ZHAL_GPIO_Direction_t Direction;
-    uint8_t Alternate_Function;
-    uint8_t Open_Drain;
-    uint8_t High_Drive;
-    uint8_t Pull_Up;
-    uint8_t Stop_Mode_Recovery;
+    ZHAL_GPIO_Alternate_Function_t Alternate_Function  :2;
+    enable_t Open_Drain          :1;
+    enable_t High_Drive          :1;
+    enable_t Pull_Up             :1;
+    enable_t Stop_Mode_Recovery  :1;
 } ZHAL_GPIO_Config_t;
 
 
@@ -61,10 +72,9 @@ typedef struct ZHAL_GPIO_Config {
  */
 
 void ZHAL_GPIO_Config_Pin (ZHAL_GPIO_Port_t port, uint8_t pin, ZHAL_GPIO_Config_t * config);
-uint8_t ZHAL_GPIO_ReadInputPin (ZHAL_GPIO_Port_t port, uint8_t pin);
-void ZHAL_GPIO_SetOutputPin (ZHAL_GPIO_Port_t port, uint8_t pin);
-void ZHAL_GPIO_ResetOutputPin (ZHAL_GPIO_Port_t port, uint8_t pin);
-
+uint8_t ZHAL_GPIO_Read_Input (ZHAL_GPIO_Port_t port, uint8_t pin);
+void ZHAL_GPIO_Set_Output (ZHAL_GPIO_Port_t port, uint8_t pin);
+void ZHAL_GPIO_Reset_Output (ZHAL_GPIO_Port_t port, uint8_t pin);
 
 
 #endif // ZHAL_GPIO_H
