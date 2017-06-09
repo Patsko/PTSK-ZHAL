@@ -75,4 +75,11 @@ typedef enum ZHAL_IRQ {
     ZHAL_IRQ_PC0,
 } ZHAL_IRQ_t;
 
+/*
+ * Function prototypes
+ */
+
+void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority);
+
+
 #endif // ZHAL_IRQ_H

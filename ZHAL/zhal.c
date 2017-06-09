@@ -1,5 +1,5 @@
 /*
- * ZHAL Timer
+ * ZHAL
  *
  */
 
@@ -13,14 +13,7 @@
  */
 void ZHAL_Init () {
 
-
-    SET_VECTOR(TIMER2, );
-
-
-    TIMER1
-
-    TIMER0
-
-
+    ZHAL_Systick_Init();
+    EI();
 }
 

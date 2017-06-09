@@ -51,6 +51,14 @@ typedef enum Enable_enum {
 #endif
 
 #include "zhal_mcu.h"
+#include "zhal_systick.h"
+
+
+/*
+ * Function prototypes
+ */
+
+void ZHAL_Init();
 
 
 #endif // ZHAL_H

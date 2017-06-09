@@ -26,7 +26,7 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
     case ZHAL_IRQ_I2C:
     case ZHAL_IRQ_SPI:
     case ZHAL_IRQ_ADC:
-        mask = 1 << interr;
+        mask = 0x80 >> interr;
         IRQxENH = &IRQ0ENH;
         IRQxENL = &IRQ0ENL;
         break;
@@ -39,7 +39,7 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
     case ZHAL_IRQ_PA1_PD1:
     case ZHAL_IRQ_PA0:
         interr -= ZHAL_IRQ_PA7_LV;
-        mask = 1 << interr;
+        mask = 0x80 >> interr;
         IRQxENH = &IRQ1ENH;
         IRQxENL = &IRQ1ENL;
         break;
@@ -51,7 +51,7 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
     case ZHAL_IRQ_PC1:
     case ZHAL_IRQ_PC0:
         interr -= ZHAL_IRQ_MCT;
-        mask = 1 << interr;
+        mask = 0x80 >> interr;
         IRQxENH = &IRQ2ENH;
         IRQxENL = &IRQ2ENL;
         break;

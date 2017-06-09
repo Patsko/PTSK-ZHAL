@@ -47,6 +47,8 @@ void ZHAL_Systick_Init () {
     ZHAL_Systick.Tick = 0;
 
     ZHAL_Timer_Config(&timer_config);
+    ZHAL_Timer_Start(SYSTICK_TIMER);
+    ZHAL_Set_Interrupts(ZHAL_IRQ_TIMER0, ZHAL_IRQ_HIGH_PRIORITY);
 
 }
 
