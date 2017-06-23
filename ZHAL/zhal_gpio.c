@@ -100,30 +100,30 @@ void ZHAL_GPIO_Config_Pin (ZHAL_GPIO_Port_t port, uint8_t pin, ZHAL_GPIO_Config_
 
         *PxADDR_p = ZHAL_GPIO_REG_OPEN_DRAIN;
         if (config->Open_Drain == ENABLE) {
-            *PxCTL_p &= (~pin);
-        } else {
             *PxCTL_p |= pin;
+        } else {
+            *PxCTL_p &= (~pin);
         }
 
         *PxADDR_p = ZHAL_GPIO_REG_HIGH_DRIVE;
         if (config->High_Drive == ENABLE) {
-            *PxCTL_p &= (~pin);
-        } else {
             *PxCTL_p |= pin;
+        } else {
+            *PxCTL_p &= (~pin);
         }
 
         *PxADDR_p = ZHAL_GPIO_REG_PULL_UP;
         if (config->Pull_Up == ENABLE) {
-            *PxCTL_p &= (~pin);
-        } else {
             *PxCTL_p |= pin;
+        } else {
+            *PxCTL_p &= (~pin);
         }
 
         *PxADDR_p = ZHAL_GPIO_REG_STOP_MODE;
         if (config->Stop_Mode_Recovery == ENABLE) {
-            *PxCTL_p &= (~pin);
-        } else {
             *PxCTL_p |= pin;
+        } else {
+            *PxCTL_p &= (~pin);
         }
     }
 }
