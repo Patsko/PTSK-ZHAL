@@ -37,8 +37,6 @@ typedef enum Enable_enum {
  * Compilation defines
  */
 
-#define SYSTICK_TIMER   ZHAL_TIMER_0
-
 #define ZHAL_USE_GPIO   1
 #define ZHAL_USE_TIMER  1
 
@@ -52,6 +50,14 @@ typedef enum Enable_enum {
 
 #include "zhal_mcu.h"
 #include "zhal_systick.h"
+
+/*
+ * System defines
+ */
+
+#define SYSTEM_CLOCK        11059200    // MCU clock in Hz
+
+#define SYSTICK_TIMER       ZHAL_TIMER_0
 
 
 /*

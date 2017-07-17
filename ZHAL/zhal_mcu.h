@@ -36,7 +36,6 @@
 #define IRQ_PC1_MASK        0x02
 #define IRQ_PC0_MASK        0x01
 
-#define SYSTEM_CLOCK        11059200    // MCU clock in Hz
 
 /*
  * Typedefs
