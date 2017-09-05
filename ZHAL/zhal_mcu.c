@@ -17,6 +17,8 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
     uint8_t volatile * IRQxENL = NULL;
     uint8_t mask = 0;
 
+    DI();
+
     switch (interr) {
     case ZHAL_IRQ_TIMER2:
     case ZHAL_IRQ_TIMER1:
@@ -77,5 +79,7 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
             break;
         }
     }
+
+    EI();
 }
 

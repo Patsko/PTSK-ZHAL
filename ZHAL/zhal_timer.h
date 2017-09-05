@@ -52,13 +52,13 @@ typedef enum ZHAL_Timer_Prescaler {
 } ZHAL_Timer_Prescaler_t;
 
 typedef struct ZHAL_Timer_Config {
-    ZHAL_Timer_t Timer;
     ZHAL_Timer_Mode_t Mode;
     uint16_t Reload;
     uint16_t PWM;
     uint8_t Prescaler;
     uint8_t Polarity;
     uint8_t PWM_Update;
+
     void (* Callback) (void *);
     void * Callback_Arg;
 } ZHAL_Timer_Config_t;
@@ -70,7 +70,7 @@ typedef struct ZHAL_Timer_Config {
 
 void ZHAL_Timer_Stop (ZHAL_Timer_t timer);
 void ZHAL_Timer_Start (ZHAL_Timer_t timer);
-void ZHAL_Timer_Config (ZHAL_Timer_Config_t * config);
+void ZHAL_Timer_Config (ZHAL_Timer_t timer, ZHAL_Timer_Config_t * config);
 
 
 #endif // ZHAL_TIMER_H

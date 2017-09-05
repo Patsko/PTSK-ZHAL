@@ -39,6 +39,7 @@ typedef enum Enable_enum {
 
 #define ZHAL_USE_GPIO   1
 #define ZHAL_USE_TIMER  1
+#define ZHAL_USE_UART   1
 
 #if ZHAL_USE_GPIO
 #include "zhal_gpio.h"
@@ -46,6 +47,10 @@ typedef enum Enable_enum {
 
 #if ZHAL_USE_TIMER
 #include "zhal_timer.h"
+#endif
+
+#if ZHAL_USE_UART
+#include "zhal_uart.h"
 #endif
 
 #include "zhal_mcu.h"

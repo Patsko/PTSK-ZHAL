@@ -33,7 +33,6 @@ static void ZHAL_Systick_Callback (void * arg) {
  */
 void ZHAL_Systick_Init () {
     const ZHAL_Timer_Config_t timer_config = {
-        SYSTICK_TIMER,
         TIMER_MODE_CONTINUOUS,
         (SYSTEM_CLOCK / 1000),
         0,
@@ -46,7 +45,7 @@ void ZHAL_Systick_Init () {
 
     ZHAL_Systick.Tick = 0;
 
-    ZHAL_Timer_Config(&timer_config);
+    ZHAL_Timer_Config(SYSTICK_TIMER, &timer_config);
     ZHAL_Timer_Start(SYSTICK_TIMER);
     ZHAL_Set_Interrupts(ZHAL_IRQ_TIMER0, ZHAL_IRQ_HIGH_PRIORITY);
 

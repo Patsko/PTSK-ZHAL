@@ -53,7 +53,7 @@ void ZHAL_Timer_Start (ZHAL_Timer_t timer) {
 /*
  * ZHAL_Timer_Config
  */
-void ZHAL_Timer_Config (ZHAL_Timer_Config_t * config) {
+void ZHAL_Timer_Config (ZHAL_Timer_t timer, ZHAL_Timer_Config_t * config) {
     uint8_t volatile * TxCTL0_p = NULL;
     uint8_t volatile * TxCTL1_p = NULL;
     uint8_t volatile * TxCTL2_p = NULL;
@@ -62,7 +62,7 @@ void ZHAL_Timer_Config (ZHAL_Timer_Config_t * config) {
     uint16_t volatile * TxPWM0 = NULL;
     uint8_t aux = 0;
 
-    switch (config->Timer) {
+    switch (timer) {
     case ZHAL_TIMER_0:
         TxCTL0_p = &T0CTL0;
         TxCTL1_p = &T0CTL1;
@@ -89,74 +89,75 @@ void ZHAL_Timer_Config (ZHAL_Timer_Config_t * config) {
         break;
     }
 
-    *TxCTL0_p = 0;
-    *TxCTL1_p = 0;
-    *TxCTL2_p = 0;
+    if (TxCTL0_p != NULL) {
+        *TxCTL0_p = 0;
+        *TxCTL1_p = 0;
+        *TxCTL2_p = 0;
 
-    switch (config->Mode) {
-    case TIMER_MODE_ONESHOT:
-        break;
-    case TIMER_MODE_CONTINUOUS:
-        *TxCTL1_p |= 0x01;
-        break;
-    case TIMER_MODE_COUNTER:
-        *TxCTL1_p |= 0x02;
-        break;
-    case TIMER_MODE_PWM_SINGLE_OUTPUT:
-        *TxCTL1_p |= 0x03;
-        break;
-    case TIMER_MODE_CAPTURE:
-        *TxCTL1_p |= 0x04;
-        break;
-    case TIMER_MODE_COMPARE:
-        *TxCTL1_p |= 0x05;
-        break;
-    case TIMER_MODE_GATED:
-        *TxCTL1_p |= 0x06;
-        break;
-    case TIMER_MODE_CAPTURE_COMPARE:
-        *TxCTL1_p |= 0x07;
-        break;
-    case TIMER_MODE_PWM_DUAL_OUTPUT:
-        *TxCTL0_p |= 0x80;
-        break;
-    case TIMER_MODE_CAPTURE_RESTART:
-        *TxCTL0_p |= 0x80;
-        *TxCTL1_p |= 0x01;
-        break;
-    case TIMER_MODE_COMPARATOR_COUNTER:
-        *TxCTL0_p |= 0x80;
-        *TxCTL1_p |= 0x02;
-        break;
-    case TIMER_MODE_TRIGGERED_ONESHOT:
-        *TxCTL0_p |= 0x80;
-        *TxCTL1_p |= 0x03;
-        break;
-    case TIMER_MODE_DEMODULATION:
-        *TxCTL0_p |= 0x80;
-        *TxCTL1_p |= 0x04;
-        break;
+        switch (config->Mode) {
+        case TIMER_MODE_ONESHOT:
+            break;
+        case TIMER_MODE_CONTINUOUS:
+            *TxCTL1_p |= 0x01;
+            break;
+        case TIMER_MODE_COUNTER:
+            *TxCTL1_p |= 0x02;
+            break;
+        case TIMER_MODE_PWM_SINGLE_OUTPUT:
+            *TxCTL1_p |= 0x03;
+            break;
+        case TIMER_MODE_CAPTURE:
+            *TxCTL1_p |= 0x04;
+            break;
+        case TIMER_MODE_COMPARE:
+            *TxCTL1_p |= 0x05;
+            break;
+        case TIMER_MODE_GATED:
+            *TxCTL1_p |= 0x06;
+            break;
+        case TIMER_MODE_CAPTURE_COMPARE:
+            *TxCTL1_p |= 0x07;
+            break;
+        case TIMER_MODE_PWM_DUAL_OUTPUT:
+            *TxCTL0_p |= 0x80;
+            break;
+        case TIMER_MODE_CAPTURE_RESTART:
+            *TxCTL0_p |= 0x80;
+            *TxCTL1_p |= 0x01;
+            break;
+        case TIMER_MODE_COMPARATOR_COUNTER:
+            *TxCTL0_p |= 0x80;
+            *TxCTL1_p |= 0x02;
+            break;
+        case TIMER_MODE_TRIGGERED_ONESHOT:
+            *TxCTL0_p |= 0x80;
+            *TxCTL1_p |= 0x03;
+            break;
+        case TIMER_MODE_DEMODULATION:
+            *TxCTL0_p |= 0x80;
+            *TxCTL1_p |= 0x04;
+            break;
+        }
+
+        *TxR = config->Reload;
+        *TxPWM0 = config->PWM;
+
+        if (config->Prescaler <= TIMER_PRESCALER_128) {
+            aux = (config->Prescaler << 3);
+            *TxCTL1_p |= aux;
+        }
+
+        if (config->Polarity == 1) {
+            *TxCTL1_p |= 0x40;
+        }
+
+        if (config->PWM_Update == 1) {
+            *TxCTL2_p |= 0x20;
+        }
+
+        ZHAL_Callback_fp[timer] = config->Callback;
+        ZHAL_Callback_Arg_p[timer] = config->Callback_Arg;
     }
-
-    *TxR = config->Reload;
-    *TxPWM0 = config->PWM;
-
-    if (config->Prescaler <= TIMER_PRESCALER_128) {
-        aux = (config->Prescaler << 3);
-        *TxCTL1_p |= aux;
-    }
-
-    if (config->Polarity == 1) {
-        *TxCTL1_p |= 0x40;
-    }
-
-    if (config->PWM_Update == 1) {
-        *TxCTL2_p |= 0x20;
-    }
-
-    ZHAL_Callback_fp[config->Timer] = config->Callback;
-    ZHAL_Callback_Arg_p[config->Timer] = config->Callback_Arg;
-
 }
 
 
@@ -184,7 +185,6 @@ void interrupt ZHAL_Timer_2_ISR () _At TIMER2 {
     if (ZHAL_Callback_fp[ZHAL_TIMER_2] != NULL) {
         (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_TIMER_2]);
     }
-
 }
 
 
