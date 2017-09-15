@@ -8,8 +8,7 @@
 #include "zhal.h"
 #include "zhal_uart.h"
 
-static void (* ZHAL_Callback_fp[ZHAL_UART_MAX]) (void *);
-static void * ZHAL_Callback_Arg_p[ZHAL_UART_MAX];
+static void (* ZHAL_Callback_fp[ZHAL_UART_MAX]) (ZHAL_UART_ISR_Callback_Arg_t);
 
 /*
  * ZHAL_UART_Config
@@ -50,7 +49,6 @@ void ZHAL_UART_Config (ZHAL_UART_Port_t port, ZHAL_UART_Config_t * config) {
         }
 
         ZHAL_Callback_fp[port] = config->Callback;
-        ZHAL_Callback_Arg_p[port] = config->Callback_Arg;
     }
 }
 
@@ -122,7 +120,7 @@ void interrupt ZHAL_UART_0_RX_ISR () _At UART0_RX {
     IRQ0 &= IRQ_UART0_RX_MASK;
 
     if (ZHAL_Callback_fp[ZHAL_UART_0] != NULL) {
-        (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_UART_0]);
+        (*ZHAL_Callback_fp)(DATA_RECEIVED);
     }
 }
 
@@ -131,6 +129,6 @@ void interrupt ZHAL_UART_0_TX_ISR () _At UART0_TX {
     IRQ0 &= IRQ_UART0_TX_MASK;
 
     if (ZHAL_Callback_fp[ZHAL_UART_0] != NULL) {
-        (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_UART_0]);
+        (*ZHAL_Callback_fp)(TRANSMISSION_COMPLETE);
     }
 }

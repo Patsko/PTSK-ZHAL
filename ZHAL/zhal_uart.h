@@ -16,6 +16,8 @@
 #define ZHAL_UART_0_BASE_REG        (&U0D)
 #define ZHAL_UART_1_BASE_REG        (&U1D)
 
+#define ZHAL_CALLBACK_ARG_RX_ISR
+#define ZHAL_CALLBACK_ARG_TX_ISR
 
 /*
  * Typedefs
@@ -32,14 +34,19 @@ typedef enum ZHAL_UART_Parity {
     ZHAL_UART_EVEN_PARITY,
 } ZHAL_UART_Parity_t;
 
+typedef enum ZHAL_UART_ISR_Callback_Arg {
+    TRANSMISSION_COMPLETE = 1,
+    DATA_RECEIVED,
+    ERROR_DETECTED,
+    BREAK_DETECTED,
+} ZHAL_UART_ISR_Callback_Arg_t;
 
 typedef struct ZHAL_UART_Config {
     ZHAL_UART_Parity_t Parity    :2;
     enable_t CTS                 :1;
     enable_t StopBitSelect       :1;
 
-    void (* Callback) (void *);
-    void * Callback_Arg;
+    void (* Callback) (ZHAL_UART_ISR_Callback_Arg_t);
 } ZHAL_UART_Config_t;
 
 

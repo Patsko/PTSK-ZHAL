@@ -9,6 +9,7 @@
 #include "zhal.h"
 #include <ez8.h>
 
+
 /*
  * Typedefs
  */
@@ -20,6 +21,12 @@ typedef struct {
     uint8_t * Data;
 } ZHAL_FIFO_t;
 
+typedef enum ZHAL_Driver_Status {
+    DRIVER_UNINITIALIZED = 0,
+    DRIVER_IDLE,
+    DRIVER_IN_USE,
+    DRIVER_ERROR,
+} ZHAL_Driver_Status_t;
 
 /*
  * Function prototypes

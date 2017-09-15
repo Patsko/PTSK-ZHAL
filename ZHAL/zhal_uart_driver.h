@@ -25,8 +25,7 @@ typedef struct {
     uint8_t ISR_NewDataFlag;
     uint8_t ISR_TransmissionCompleteFlag;
 
-    void (* Callback) (void *);
-    void * Callback_Arg;
+    void (* Callback) (uint8_t);
 } ZHAL_Driver_t;
 
 /*
