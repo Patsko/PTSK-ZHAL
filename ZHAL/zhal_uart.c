@@ -52,6 +52,23 @@ void ZHAL_UART_Config (ZHAL_UART_Port_t port, ZHAL_UART_Config_t * config) {
     }
 }
 
+/*
+ * ZHAL_UART_Baud_Rate_Config
+ */
+void ZHAL_UART_Baud_Rate_Config (ZHAL_UART_Port_t port, ZHAL_UART_Config_t * config, uint32_t clock) {
+
+    clock /= 16;
+    clock /= config->BaudRate;
+
+    switch (port) {
+    case ZHAL_UART_0:
+        U0BR = (uint16_t) clock;
+        break;
+    default:
+        break;
+    }
+}
+
 
 /*
  * ZHAL_UART_Receiver_Control

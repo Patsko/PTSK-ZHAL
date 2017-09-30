@@ -23,7 +23,6 @@ typedef struct {
 
 typedef enum ZHAL_Driver_Status {
     DRIVER_UNINITIALIZED = 0,
-    DRIVER_IDLE,
     DRIVER_IN_USE,
     DRIVER_ERROR,
 } ZHAL_Driver_Status_t;
@@ -32,9 +31,9 @@ typedef enum ZHAL_Driver_Status {
  * Function prototypes
  */
 
-void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, void * buffer, uint8_t size);
-uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, void * data, uint8_t bytes);
-uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, void * data, uint8_t bytes);
+void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, uint8_t * buffer, uint8_t size);
+uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes);
+uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes);
 
 
 #endif // ZHAL_DRIVERS_H

@@ -12,11 +12,11 @@
  * ZHAL_FIFO_Init
  *
  */
-void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, void * buffer, uint8_t size) {
+void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, uint8_t * buffer, uint8_t size) {
     fifo->Head = 0;
     fifo->Tail = 0;
-    fifo->Size = 0;
-    fifo->Data = (uint8_t *) buffer;
+    fifo->Size = size;
+    fifo->Data = buffer;
 }
 
 
@@ -24,11 +24,11 @@ void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, void * buffer, uint8_t size) {
  * ZHAL_FIFO_Put_Bytes
  *
  */
-uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, void * data, uint8_t bytes) {
+uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) {
     uint8_t i;
 
     for (i = 0; (i < bytes) && (i < fifo->Size); i++) {
-        fifo->Data[fifo->Head] = *(uint8_t *) data;
+        fifo->Data[fifo->Head] = *data;
         data++;
         fifo->Head++;
         if (fifo->Head >= fifo->Size) {
@@ -43,11 +43,22 @@ uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, void * data, uint8_t bytes) {
  * ZHAL_FIFO_Get_Bytes
  *
  */
-uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, void * data, uint8_t bytes) {
+uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) {
     uint8_t i;
+    uint8_t bytes_available;
 
-    for (i = 0; (i < bytes) && (i < fifo->Size); i++) {
-        *(uint8_t *) data = fifo->Data[fifo->Tail++];
+    if (bytes > fifo->Size) {
+        bytes = fifo->Size;
+    }
+
+    if (fifo->Tail <= fifo->Head) {
+        bytes_available = fifo->Head - fifo->Tail;
+    } else {
+        bytes_available = (fifo->Size - fifo->Tail) + fifo->Head;
+    }
+
+    for (i = 0; (i < bytes) && (i < bytes_available); i++) {
+        *data = fifo->Data[fifo->Tail];
         data++;
         fifo->Tail++;
         if (fifo->Tail >= fifo->Size) {

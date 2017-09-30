@@ -18,6 +18,10 @@ typedef unsigned char uint8_t;
 typedef unsigned int uint16_t;
 #endif
 
+#ifndef uint16_t
+typedef unsigned long uint32_t;
+#endif
+
 #ifndef bool_t
 typedef enum Bool_enum {
     FALSE = 0,
@@ -37,9 +41,10 @@ typedef enum Enable_enum {
  * Compilation defines
  */
 
-#define ZHAL_USE_GPIO   1
-#define ZHAL_USE_TIMER  1
-#define ZHAL_USE_UART   1
+#define ZHAL_USE_GPIO           1
+#define ZHAL_USE_TIMER          1
+#define ZHAL_USE_UART           1
+#define ZHAL_USE_UART_DRIVER    1
 
 #if ZHAL_USE_GPIO
 #include "zhal_gpio.h"
@@ -52,6 +57,11 @@ typedef enum Enable_enum {
 #if ZHAL_USE_UART
 #include "zhal_uart.h"
 #endif
+
+#if ZHAL_USE_UART_DRIVER
+#include "zhal_uart_driver.h"
+#endif
+
 
 #include "zhal_mcu.h"
 #include "zhal_systick.h"
