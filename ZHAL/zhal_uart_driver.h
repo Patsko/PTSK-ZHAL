@@ -22,7 +22,6 @@
 typedef struct {
     uint8_t DriverStatus;
     uint8_t LockID;
-    enable_t TransmitterStatus;
     uint8_t ISR_NewDataFlag;
     uint8_t ISR_TransmissionCompleteFlag;
 

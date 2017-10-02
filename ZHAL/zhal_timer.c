@@ -162,8 +162,6 @@ void ZHAL_Timer_Config (ZHAL_Timer_t timer, ZHAL_Timer_Config_t * config) {
 
 
 void interrupt ZHAL_Timer_0_ISR () _At TIMER0 {
-    IRQ0 &= IRQ_TIMER0_MASK;
-
     if (ZHAL_Callback_fp[ZHAL_TIMER_0] != NULL) {
         (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_TIMER_0]);
     }
@@ -171,8 +169,6 @@ void interrupt ZHAL_Timer_0_ISR () _At TIMER0 {
 
 
 void interrupt ZHAL_Timer_1_ISR () _At TIMER1 {
-    IRQ0 &= IRQ_TIMER1_MASK;
-
     if (ZHAL_Callback_fp[ZHAL_TIMER_1] != NULL) {
         (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_TIMER_1]);
     }
@@ -180,8 +176,6 @@ void interrupt ZHAL_Timer_1_ISR () _At TIMER1 {
 
 
 void interrupt ZHAL_Timer_2_ISR () _At TIMER2 {
-    IRQ0 &= IRQ_TIMER2_MASK;
-
     if (ZHAL_Callback_fp[ZHAL_TIMER_2] != NULL) {
         (*ZHAL_Callback_fp)(ZHAL_Callback_Arg_p[ZHAL_TIMER_2]);
     }

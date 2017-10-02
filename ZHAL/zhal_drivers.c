@@ -10,7 +10,7 @@
 
 /*
  * ZHAL_FIFO_Init
- *
+ * Initializes the FIFO structure
  */
 void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, uint8_t * buffer, uint8_t size) {
     fifo->Head = 0;
@@ -22,7 +22,7 @@ void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, uint8_t * buffer, uint8_t size) {
 
 /*
  * ZHAL_FIFO_Put_Bytes
- *
+ * Put data into FIFO and returns the quantity of bytes inserted
  */
 uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) {
     uint8_t i;
@@ -41,16 +41,18 @@ uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) 
 
 /*
  * ZHAL_FIFO_Get_Bytes
- *
+ * Get data from FIFO and returns the quantity of bytes get
  */
 uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) {
     uint8_t i;
     uint8_t bytes_available;
 
+    // Protection
     if (bytes > fifo->Size) {
         bytes = fifo->Size;
     }
 
+    // Calculate the number of bytes available in the FIFO
     if (fifo->Tail <= fifo->Head) {
         bytes_available = fifo->Head - fifo->Tail;
     } else {

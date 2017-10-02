@@ -134,8 +134,6 @@ void ZHAL_UART_Send (ZHAL_UART_Port_t port, uint8_t data) {
 
 
 void interrupt ZHAL_UART_0_RX_ISR () _At UART0_RX {
-    IRQ0 &= IRQ_UART0_RX_MASK;
-
     if (ZHAL_Callback_fp[ZHAL_UART_0] != NULL) {
         (*ZHAL_Callback_fp)(DATA_RECEIVED);
     }
@@ -143,8 +141,6 @@ void interrupt ZHAL_UART_0_RX_ISR () _At UART0_RX {
 
 
 void interrupt ZHAL_UART_0_TX_ISR () _At UART0_TX {
-    IRQ0 &= IRQ_UART0_TX_MASK;
-
     if (ZHAL_Callback_fp[ZHAL_UART_0] != NULL) {
         (*ZHAL_Callback_fp)(TRANSMISSION_COMPLETE);
     }
