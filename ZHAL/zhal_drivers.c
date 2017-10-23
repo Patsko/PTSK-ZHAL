@@ -70,3 +70,31 @@ uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) 
     return (i);
 }
 
+
+/*
+ * ZHAL_FIFO_Peek
+ * Get the last byte inserted into FIFO, returns the quantity of bytes available
+ */
+uint8_t ZHAL_FIFO_Peek (ZHAL_FIFO_t * fifo, uint8_t * data) {
+    uint8_t bytes_available;
+
+    // Calculate the number of bytes available in the FIFO
+    if (fifo->Tail <= fifo->Head) {
+        bytes_available = fifo->Head - fifo->Tail;
+    } else {
+        bytes_available = (fifo->Size - fifo->Tail) + fifo->Head;
+    }
+
+    if ((bytes_available > 0) && (data != NULL)) {
+    	if (fifo->Head > 0) {
+    		*data = fifo->Data[fifo->Head - 1];
+    	} else {
+    		*data = fifo->Data[fifo->Size - 1];
+    	}
+    }
+
+    return (bytes_available);
+}
+
+
+

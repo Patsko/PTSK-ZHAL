@@ -34,6 +34,6 @@ typedef enum ZHAL_Driver_Status {
 void ZHAL_FIFO_Init (ZHAL_FIFO_t * fifo, uint8_t * buffer, uint8_t size);
 uint8_t ZHAL_FIFO_Put_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes);
 uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes);
-
+uint8_t ZHAL_FIFO_Peek (ZHAL_FIFO_t * fifo, uint8_t * data);
 
 #endif // ZHAL_DRIVERS_H

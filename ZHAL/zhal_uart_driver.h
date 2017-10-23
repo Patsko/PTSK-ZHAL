@@ -38,6 +38,7 @@ void ZHAL_UART_Driver();
 uint8_t ZHAL_UART_Driver_Put_Data (uint8_t lock_id, void * data, uint8_t bytes);
 uint8_t ZHAL_UART_Driver_Get_Data (uint8_t lock_id, void * data, uint8_t bytes);
 void ZHAL_UART_Driver_Control (uint8_t lock_id, uint8_t control);
+uint8_t ZHAL_UART_Driver_Peek (uint8_t lock_id, void * data);
 
 
 #endif // ZHAL_UART_DRIVER_H

@@ -169,6 +169,23 @@ uint8_t ZHAL_UART_Driver_Get_Data (uint8_t lock_id, void * data, uint8_t bytes) 
 }
 
 /*
+ * ZHAL_UART_Driver_Peek
+ * Get the last byte inserted into UART FIFO, returns the quantity of bytes available
+ */
+uint8_t ZHAL_UART_Driver_Peek (uint8_t lock_id, void * data) {
+	uint8_t bytes;
+
+    if (ZHAL_UART_Driver_Data.LockID == lock_id) {
+        bytes = ZHAL_FIFO_Peek(&ZHAL_UART_Rx_FIFO, data);
+    } else {
+        bytes = 0;
+    }
+    return (bytes);
+}
+
+
+
+/*
  * ZHAL_UART_Driver_Control
  *
  */
