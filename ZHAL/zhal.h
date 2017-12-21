@@ -45,6 +45,8 @@ typedef enum Enable_enum {
 #define ZHAL_USE_TIMER          1
 #define ZHAL_USE_UART           1
 #define ZHAL_USE_UART_DRIVER    1
+#define ZHAL_USE_SPI            1
+#define ZHAL_USE_SPI_DRIVER     1
 
 #if ZHAL_USE_GPIO
 #include "zhal_gpio.h"
@@ -62,6 +64,13 @@ typedef enum Enable_enum {
 #include "zhal_uart_driver.h"
 #endif
 
+#if ZHAL_USE_SPI
+#include "zhal_spi.h"
+#endif
+
+#if ZHAL_USE_SPI_DRIVER
+#include "zhal_spi_driver.h"
+#endif
 
 #include "zhal_mcu.h"
 #include "zhal_systick.h"
