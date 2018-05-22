@@ -27,14 +27,6 @@ typedef enum ZHAL_Driver_Status {
     DRIVER_ERROR,
 } ZHAL_Driver_Status_t;
 
-typedef struct {
-    uint8_t DriverStatus;
-    uint8_t LockID;
-    uint8_t ISR_NewDataFlag;
-    uint8_t ISR_TransmissionCompleteFlag;
-
-    void (* Callback) (uint8_t);
-} ZHAL_Driver_t;
 
 /*
  * Function prototypes
