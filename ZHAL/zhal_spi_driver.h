@@ -20,21 +20,26 @@
  */
 
 typedef struct {
+    bool_t IsOwner;
+    uint8_t Status;
+} ZHAL_SPI_Driver_Handle_t;
+
+typedef struct {
     uint16_t BaudRate;
     void (* TxCallback) (void);
     void (* RxCallback) (void);
-} ZHAL_SPI_Driver_t;
+} ZHAL_SPI_Driver_Config_t;
+
 /*
  * Function prototypes
  */
 
-uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_t * spi_handle);
-void ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_t * spi_handle);
-uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, uint8_t bytes);
-void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_t * spi_handle);
-uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, uint8_t bytes);
-void ZHAL_SPI_Driver_Control (ZHAL_SPI_Driver_t * spi_handle, uint8_t control);
-uint8_t ZHAL_SPI_Driver_Peek (ZHAL_SPI_Driver_t * spi_handle, void * data);
+uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_Handle_t * handle, ZHAL_SPI_Driver_Config_t * config);
+uint8_t ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_Handle_t * handle);
+uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes);
+void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle);
+uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes);
+uint8_t ZHAL_SPI_Driver_Peek (ZHAL_SPI_Driver_Handle_t * handle, void * data);
 
 
 #endif // ZHAL_SPI_DRIVER_H

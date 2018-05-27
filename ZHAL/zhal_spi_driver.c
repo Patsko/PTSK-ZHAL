@@ -10,7 +10,12 @@
 #include "zhal_spi_driver.h"
 #include "zhal_drivers.h"
 
-static ZHAL_SPI_Driver_t * ZHAL_SPI_Driver_Data;
+static struct {
+    bool_t IsLocked;
+    uint16_t BaudRate;
+    void (* TxCallback) (void);
+    void (* RxCallback) (void);
+} ZHAL_SPI_Driver_Data;
 
 static ZHAL_FIFO_t ZHAL_SPI_Rx_FIFO;
 static ZHAL_FIFO_t ZHAL_SPI_Tx_FIFO;
@@ -29,16 +34,16 @@ static void ZHAL_SPI_Driver_ISR_Callback (ZHAL_SPI_ISR_Callback_Arg_t isr) {
     case DATA_RECEIVED:
         data = ZHAL_SPI_Read(ZHAL_SPI_0);
         ZHAL_FIFO_Put_Bytes(&ZHAL_SPI_Rx_FIFO, &data, 1);
-        if (ZHAL_SPI_Driver_Data->RxCallback != NULL) {
-            (*ZHAL_SPI_Driver_Data->RxCallback)();
+        if (ZHAL_SPI_Driver_Data.RxCallback != NULL) {
+            (*ZHAL_SPI_Driver_Data.RxCallback)();
         }
         break;
     case TRANSMISSION_COMPLETE:
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
         } else {
-            if (ZHAL_SPI_Driver_Data->TxCallback != NULL) {
-                (*ZHAL_SPI_Driver_Data->TxCallback)();
+            if (ZHAL_SPI_Driver_Data.TxCallback != NULL) {
+                (*ZHAL_SPI_Driver_Data.TxCallback)();
             }
         }
         break;
@@ -50,7 +55,7 @@ static void ZHAL_SPI_Driver_ISR_Callback (ZHAL_SPI_ISR_Callback_Arg_t isr) {
  * ZHAL_SPI_Driver_Init
  * Inits the SPI driver and sets the lock id
  */
-uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_t * spi_handle) {
+uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_Handle_t * handle, ZHAL_SPI_Driver_Config_t * config) {
     uint8_t status = 0;
     ZHAL_GPIO_Config_t gpio_config = {
         ZHAL_GPIO_INPUT,
@@ -60,7 +65,7 @@ uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_t * spi_handle) {
         DISABLE,
         DISABLE
     };
-    ZHAL_SPI_Config_t config = {
+    ZHAL_SPI_Config_t spi_config = {
         ZHAL_SPI_MODE_DEFAULT,
         ZHAL_SPI_MODE_MASTER,
         ZHAL_SPI_POL_PHASE_0,
@@ -69,14 +74,24 @@ uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_t * spi_handle) {
         ZHAL_SPI_Driver_ISR_Callback
     };
 
-    if ((ZHAL_SPI_Driver_Data != NULL) && (ZHAL_SPI_Driver_Data != spi_handle)) {
+    if ((handle == NULL) || (config == NULL)) {
+        status = 0;
+    } else if ((ZHAL_SPI_Driver_Data.IsLocked == TRUE) && (handle->IsOwner == FALSE)) {
         status = 0;
     } else {
+        ZHAL_SPI_Driver_Data.IsLocked = TRUE;
+        handle->IsOwner = TRUE;
+
+        ZHAL_SPI_Driver_Data.RxCallback = config->RxCallback;
+        ZHAL_SPI_Driver_Data.TxCallback = config->TxCallback;
+        ZHAL_SPI_Driver_Data.BaudRate = config->BaudRate;
+
         ZHAL_FIFO_Init(&ZHAL_SPI_Rx_FIFO, &ZHAL_SPI_Rx_FIFO_Buffer, ZHAL_SPI_FIFO_SIZE);
         ZHAL_FIFO_Init(&ZHAL_SPI_Tx_FIFO, &ZHAL_SPI_Tx_FIFO_Buffer, ZHAL_SPI_FIFO_SIZE);
 
-        ZHAL_SPI_Config(ZHAL_SPI_0, &config);
-        ZHAL_SPI_Baud_Rate_Config (ZHAL_SPI_0, &config, SYSTEM_CLOCK);
+        spi_config.BaudRate = config->BaudRate;
+        ZHAL_SPI_Config(ZHAL_SPI_0, &spi_config);
+        ZHAL_SPI_Baud_Rate_Config (ZHAL_SPI_0, &spi_config, SYSTEM_CLOCK);
 
         (void) ZHAL_SPI_Read(ZHAL_SPI_0);   // Reads any garbage that data register may contain
 
@@ -92,9 +107,9 @@ uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_t * spi_handle) {
 
 /*
  * ZHAL_SPI_Driver_Close
- * Closes the UART and frees the driver
+ * Closes the SPI and frees the driver
  */
-void ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_t * spi_handle) {
+uint8_t ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_Handle_t * handle) {
     uint8_t status = 0;
     ZHAL_GPIO_Config_t gpio_config = {
         ZHAL_GPIO_INPUT,
@@ -105,14 +120,18 @@ void ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_t * spi_handle) {
         DISABLE
     };
 
-    if ((ZHAL_SPI_Driver_Data == spi_handle) && (spi_handle != NULL)) {
+    if ((handle != NULL) && (handle->IsOwner)) {
         ZHAL_SPI_Disable(ZHAL_SPI_0);
         ZHAL_Set_Interrupts(ZHAL_IRQ_SPI, ZHAL_IRQ_DISABLED);
 
         ZHAL_GPIO_Config_Pin(ZHAL_GPIO_C,  GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5, &gpio_config); // MISO, MOSI, SCK, respectively
 
-        ZHAL_SPI_Driver_Data = NULL;
+        handle->IsOwner = FALSE;
+        ZHAL_SPI_Driver_Data.IsLocked = FALSE;
+
+        status = 1;
     }
+    return (status);
 }
 
 
@@ -120,9 +139,9 @@ void ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_t * spi_handle) {
  * ZHAL_SPI_Driver_Put_Data
  * Put data into SPI Driver transmitter FIFO and returns the quantity of bytes inserted
  */
-uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, uint8_t bytes) {
+uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes) {
 
-    if ((ZHAL_SPI_Driver_Data == spi_handle) && (spi_handle != NULL)) {
+    if ((handle != NULL) && (handle->IsOwner)) {
         bytes = ZHAL_FIFO_Put_Bytes(&ZHAL_SPI_Tx_FIFO, data, bytes);
     } else {
         bytes = 0;
@@ -134,10 +153,10 @@ uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, u
  * ZHAL_SPI_Driver_Send_Data
  *
  */
-void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_t * spi_handle) {
+void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle) {
     uint8_t data;
 
-    if ((ZHAL_SPI_Driver_Data == spi_handle) && (spi_handle != NULL)) {
+    if ((handle != NULL) && (handle->IsOwner)) {
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
         }
@@ -148,9 +167,9 @@ void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_t * spi_handle) {
  * ZHAL_SPI_Driver_Get_Data
  * Get data from SPI Driver receiver FIFO and returns the quantity of bytes get
  */
-uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, uint8_t bytes) {
+uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes) {
 
-    if ((ZHAL_SPI_Driver_Data == spi_handle) && (spi_handle != NULL)) {
+    if ((handle != NULL) && (handle->IsOwner)) {
         bytes = ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Rx_FIFO, data, bytes);
     } else {
         bytes = 0;
@@ -162,10 +181,10 @@ uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_t * spi_handle, void * data, u
  * ZHAL_SPI_Driver_Peek
  * Get the last byte inserted into SPI FIFO, returns the quantity of bytes available
  */
-uint8_t ZHAL_SPI_Driver_Peek (ZHAL_SPI_Driver_t * spi_handle, void * data) {
+uint8_t ZHAL_SPI_Driver_Peek (ZHAL_SPI_Driver_Handle_t * handle, void * data) {
     uint8_t bytes;
 
-    if ((ZHAL_SPI_Driver_Data == spi_handle) && (spi_handle != NULL)) {
+    if ((handle != NULL) && (handle->IsOwner)) {
         bytes = ZHAL_FIFO_Peek(&ZHAL_SPI_Rx_FIFO, data);
     } else {
         bytes = 0;
