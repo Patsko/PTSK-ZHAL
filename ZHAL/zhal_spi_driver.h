@@ -37,7 +37,7 @@ typedef struct {
 uint8_t ZHAL_SPI_Driver_Init (ZHAL_SPI_Driver_Handle_t * handle, ZHAL_SPI_Driver_Config_t * config);
 uint8_t ZHAL_SPI_Driver_Close (ZHAL_SPI_Driver_Handle_t * handle);
 uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes);
-void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle);
+void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle, ZHAL_GPIO_Port_t gpio_port, uint8_t gpio_pin);
 uint8_t ZHAL_SPI_Driver_Get_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data, uint8_t bytes);
 uint8_t ZHAL_SPI_Driver_Peek (ZHAL_SPI_Driver_Handle_t * handle, void * data);
 

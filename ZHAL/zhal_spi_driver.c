@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "zhal.h"
 #include "zhal_spi.h"
+#include "zhal_gpio.h"
 #include "zhal_spi_driver.h"
 #include "zhal_drivers.h"
 
@@ -15,6 +16,8 @@ static struct {
     uint16_t BaudRate;
     void (* TxCallback) (void);
     void (* RxCallback) (void);
+    ZHAL_GPIO_Port_t GPIO_Port;
+    uint8_t GPIO_Pin;
 } ZHAL_SPI_Driver_Data;
 
 static ZHAL_FIFO_t ZHAL_SPI_Rx_FIFO;
@@ -42,6 +45,10 @@ static void ZHAL_SPI_Driver_ISR_Callback (ZHAL_SPI_ISR_Callback_Arg_t isr) {
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
         } else {
+            ZHAL_GPIO_Set_Output(ZHAL_SPI_Driver_Data.GPIO_Port, ZHAL_SPI_Driver_Data.GPIO_Pin);
+            ZHAL_SPI_Driver_Data.GPIO_Port = 0;
+            ZHAL_SPI_Driver_Data.GPIO_Pin = 0;
+
             if (ZHAL_SPI_Driver_Data.TxCallback != NULL) {
                 (*ZHAL_SPI_Driver_Data.TxCallback)();
             }
@@ -151,13 +158,18 @@ uint8_t ZHAL_SPI_Driver_Put_Data (ZHAL_SPI_Driver_Handle_t * handle, void * data
 
 /*
  * ZHAL_SPI_Driver_Send_Data
- *
+ * Start a data transfer on the SPI bus
+ * gpio_port and gpio_pin must be previously configured as outputs by the application and initialized at
  */
-void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle) {
+void ZHAL_SPI_Driver_Send_Data (ZHAL_SPI_Driver_Handle_t * handle, ZHAL_GPIO_Port_t gpio_port, uint8_t gpio_pin) {
     uint8_t data;
 
     if ((handle != NULL) && (handle->IsOwner)) {
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
+            ZHAL_SPI_Driver_Data.GPIO_Port = gpio_port;
+            ZHAL_SPI_Driver_Data.GPIO_Pin = gpio_pin;
+            ZHAL_GPIO_Reset_Output(ZHAL_SPI_Driver_Data.GPIO_Port, ZHAL_SPI_Driver_Data.GPIO_Pin);
+
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
         }
     }

@@ -38,7 +38,8 @@ typedef enum ZHAL_GPIO_Subregister {
 } ZHAL_GPIO_Subregister_t;
 
 typedef enum ZHAL_GPIO_Port {
-    ZHAL_GPIO_A = 0x00,
+    ZHAL_NO_GPIO = 0,
+    ZHAL_GPIO_A,
     ZHAL_GPIO_B,
     ZHAL_GPIO_C,
     ZHAL_GPIO_D
