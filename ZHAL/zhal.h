@@ -83,6 +83,10 @@ typedef enum Enable_enum {
 
 #define SYSTICK_TIMER       ZHAL_TIMER_0
 
+#define MAX_UINT32          0xFFFFFFFF
+#define MAX_UINT16          0xFFFF
+#define MAX_UINT8           0xFF
+
 
 /*
  * Function prototypes

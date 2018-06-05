@@ -26,7 +26,6 @@
 
 void ZHAL_Systick_Init ();
 uint16_t ZHAL_Systick_Get_Tick ();
-void ZHAL_Systick_Delay (uint16_t ticks_to_wait);
 
 
 #endif // ZHAL_TIMER_H

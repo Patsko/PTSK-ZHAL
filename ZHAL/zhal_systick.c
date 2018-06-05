@@ -22,7 +22,6 @@ static struct {
  * Function that must be called from the Timer interrupt
  */
 static void ZHAL_Systick_Callback (void * arg) {
-    uint8_t teste;
 
     ZHAL_Systick.Tick++;
 }
@@ -58,20 +57,5 @@ uint16_t ZHAL_Systick_Get_Tick () {
 
     return (ZHAL_Systick.Tick);
 }
-
-
-/*
- * ZHAL_Systick_Delay
- * Blocking delay
- */
-void ZHAL_Systick_Delay (uint16_t ticks_to_wait) {
-    uint16_t final_tick;
-
-    final_tick = ticks_to_wait + ZHAL_Systick.Tick;
-
-    while (final_tick != ZHAL_Systick.Tick);  // wait until final_tick is the same as ZHAL_Systick.Tick
-
-}
-
 
 
