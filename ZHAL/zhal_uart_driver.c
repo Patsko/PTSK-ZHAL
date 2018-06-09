@@ -10,11 +10,17 @@
 #include "zhal_uart_driver.h"
 #include "zhal_drivers.h"
 
+typedef enum {
+    UART_TX_IDLE = 0,
+    UART_TX_IN_PROGRESS
+} UART_Tx_Status;
+
+
 static struct {
-    bool_t IsLocked;
     uint16_t BaudRate;
     void (* TxCallback) (void);
     void (* RxCallback) (void);
+    UART_Tx_Status TxStatus;
 } ZHAL_UART_Driver_Data;
 
 static ZHAL_FIFO_t ZHAL_UART_Rx_FIFO;
@@ -42,6 +48,7 @@ static void ZHAL_UART_Driver_ISR_Callback (ZHAL_UART_ISR_Callback_Arg_t isr) {
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_UART_Tx_FIFO, &data, 1) != 0) {
             ZHAL_UART_Send(ZHAL_UART_0, data);
         } else {
+            ZHAL_UART_Driver_Data.TxStatus = UART_TX_IDLE;
             if (ZHAL_UART_Driver_Data.TxCallback != NULL) {
                 (*ZHAL_UART_Driver_Data.TxCallback)();
             }
@@ -55,7 +62,7 @@ static void ZHAL_UART_Driver_ISR_Callback (ZHAL_UART_ISR_Callback_Arg_t isr) {
  * ZHAL_UART_Driver_Init
  * Inits the UART driver and sets the lock id
  */
-uint8_t ZHAL_UART_Driver_Init (ZHAL_UART_Driver_Handle_t * handle, ZHAL_UART_Driver_Config_t * config) {
+uint8_t ZHAL_UART_Driver_Init (ZHAL_UART_Driver_Config_t * config) {
     uint8_t status = 0;
     ZHAL_GPIO_Config_t gpio_config = {
         ZHAL_GPIO_INPUT,
@@ -73,17 +80,11 @@ uint8_t ZHAL_UART_Driver_Init (ZHAL_UART_Driver_Handle_t * handle, ZHAL_UART_Dri
         ZHAL_UART_Driver_ISR_Callback
     };
 
-    if ((handle == NULL) || (config == NULL)) {
-        status = 0;
-    } else if ((ZHAL_UART_Driver_Data.IsLocked == TRUE) && (handle->IsOwner == FALSE)) {
-        status = 0;
-    } else {
-        ZHAL_UART_Driver_Data.IsLocked = TRUE;
-        handle->IsOwner = TRUE;
-
+    if (config != NULL) {
         ZHAL_UART_Driver_Data.RxCallback = config->RxCallback;
         ZHAL_UART_Driver_Data.TxCallback = config->TxCallback;
         ZHAL_UART_Driver_Data.BaudRate = config->BaudRate;
+        ZHAL_UART_Driver_Data.TxStatus = UART_TX_IDLE;
 
         ZHAL_FIFO_Init(&ZHAL_UART_Rx_FIFO, &ZHAL_UART_Rx_FIFO_Buffer, ZHAL_UART_FIFO_SIZE);
         ZHAL_FIFO_Init(&ZHAL_UART_Tx_FIFO, &ZHAL_UART_Tx_FIFO_Buffer, ZHAL_UART_FIFO_SIZE);
@@ -110,22 +111,13 @@ uint8_t ZHAL_UART_Driver_Init (ZHAL_UART_Driver_Handle_t * handle, ZHAL_UART_Dri
  * ZHAL_UART_Driver_Close
  * Closes the UART and frees the driver
  */
-uint8_t ZHAL_UART_Driver_Close (ZHAL_UART_Driver_Handle_t * handle) {
-    uint8_t status = 0;
+void ZHAL_UART_Driver_Close () {
 
-    if ((handle != NULL) && (handle->IsOwner)) {
-        ZHAL_Set_Interrupts(ZHAL_IRQ_UART0_RX, ZHAL_IRQ_DISABLED);
-        ZHAL_Set_Interrupts(ZHAL_IRQ_UART0_TX, ZHAL_IRQ_DISABLED);
+    ZHAL_Set_Interrupts(ZHAL_IRQ_UART0_RX, ZHAL_IRQ_DISABLED);
+    ZHAL_Set_Interrupts(ZHAL_IRQ_UART0_TX, ZHAL_IRQ_DISABLED);
 
-        ZHAL_UART_Receiver_Control(ZHAL_UART_0, DISABLE);
-        ZHAL_UART_Transmitter_Control(ZHAL_UART_0, DISABLE);
-
-        handle->IsOwner = FALSE;
-        ZHAL_UART_Driver_Data.IsLocked = FALSE;
-
-        status = 1;
-    }
-    return (status);
+    ZHAL_UART_Receiver_Control(ZHAL_UART_0, DISABLE);
+    ZHAL_UART_Transmitter_Control(ZHAL_UART_0, DISABLE);
 }
 
 
@@ -133,9 +125,9 @@ uint8_t ZHAL_UART_Driver_Close (ZHAL_UART_Driver_Handle_t * handle) {
  * ZHAL_UART_Driver_Put_Data
  * Put data into UART Driver transmitter FIFO and returns the quantity of bytes inserted
  */
-uint8_t ZHAL_UART_Driver_Put_Data (ZHAL_UART_Driver_Handle_t * handle, void * data, uint8_t bytes) {
+uint8_t ZHAL_UART_Driver_Put_Data (void * data, uint8_t bytes) {
 
-    if ((handle != NULL) && (handle->IsOwner)) {
+    if (ZHAL_UART_Driver_Data.TxStatus == UART_TX_IDLE) {
         bytes = ZHAL_FIFO_Put_Bytes(&ZHAL_UART_Tx_FIFO, data, bytes);
     } else {
         bytes = 0;
@@ -147,11 +139,12 @@ uint8_t ZHAL_UART_Driver_Put_Data (ZHAL_UART_Driver_Handle_t * handle, void * da
  * ZHAL_UART_Driver_Send_Data
  *
  */
-void ZHAL_UART_Driver_Send_Data (ZHAL_UART_Driver_Handle_t * handle) {
+void ZHAL_UART_Driver_Send_Data () {
     uint8_t data;
 
-    if ((handle != NULL) && (handle->IsOwner)) {
+    if (ZHAL_UART_Driver_Data.TxStatus == UART_TX_IDLE) {
         if (ZHAL_FIFO_Get_Bytes(&ZHAL_UART_Tx_FIFO, &data, 1) != 0) {
+            ZHAL_UART_Driver_Data.TxStatus = UART_TX_IN_PROGRESS;
             ZHAL_UART_Send(ZHAL_UART_0, data);
         }
     }
@@ -161,13 +154,9 @@ void ZHAL_UART_Driver_Send_Data (ZHAL_UART_Driver_Handle_t * handle) {
  * ZHAL_UART_Driver_Get_Data
  * Get data from UART Driver receiver FIFO and returns the quantity of bytes get
  */
-uint8_t ZHAL_UART_Driver_Get_Data (ZHAL_UART_Driver_Handle_t * handle, void * data, uint8_t bytes) {
+uint8_t ZHAL_UART_Driver_Get_Data (void * data, uint8_t bytes) {
 
-    if ((handle != NULL) && (handle->IsOwner)) {
-        bytes = ZHAL_FIFO_Get_Bytes(&ZHAL_UART_Rx_FIFO, data, bytes);
-    } else {
-        bytes = 0;
-    }
+    bytes = ZHAL_FIFO_Get_Bytes(&ZHAL_UART_Rx_FIFO, data, bytes);
     return (bytes);
 }
 
@@ -175,14 +164,10 @@ uint8_t ZHAL_UART_Driver_Get_Data (ZHAL_UART_Driver_Handle_t * handle, void * da
  * ZHAL_UART_Driver_Peek
  * Get the last byte inserted into UART FIFO, returns the quantity of bytes available
  */
-uint8_t ZHAL_UART_Driver_Peek (ZHAL_UART_Driver_Handle_t * handle, void * data) {
+uint8_t ZHAL_UART_Driver_Peek (void * data) {
 	uint8_t bytes;
 
-    if ((handle != NULL) && (handle->IsOwner)) {
-        bytes = ZHAL_FIFO_Peek(&ZHAL_UART_Rx_FIFO, data);
-    } else {
-        bytes = 0;
-    }
+    bytes = ZHAL_FIFO_Peek(&ZHAL_UART_Rx_FIFO, data);
     return (bytes);
 }
 
