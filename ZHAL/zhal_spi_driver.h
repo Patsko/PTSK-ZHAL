@@ -31,7 +31,7 @@ typedef struct {
  */
 
 void ZHAL_SPI_Driver_Init ();
-void ZHAL_SPI_Driver_Close ();
+bool_t ZHAL_SPI_Driver_Close ();
 uint8_t ZHAL_SPI_Driver_Put_Data (void * data, uint8_t bytes);
 void ZHAL_SPI_Driver_Send_Data (const ZHAL_SPI_Driver_Config_t * config);
 uint8_t ZHAL_SPI_Driver_Get_Data (void * data, uint8_t bytes);

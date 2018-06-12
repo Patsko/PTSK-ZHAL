@@ -13,7 +13,7 @@
  * Application defines
  */
 
-#define ZHAL_UART_FIFO_SIZE     50
+#define ZHAL_UART_FIFO_SIZE     75
 
 /*
  * Typedefs

@@ -111,8 +111,9 @@ void ZHAL_SPI_Driver_Init () {
  * ZHAL_SPI_Driver_Close
  * Closes the SPI and frees the driver
  */
-void ZHAL_SPI_Driver_Close () {
-    ZHAL_GPIO_Config_t gpio_config = {
+bool_t ZHAL_SPI_Driver_Close () {
+    bool_t status = FALSE;
+    const ZHAL_GPIO_Config_t gpio_config = {
         ZHAL_GPIO_INPUT,
         ZHAL_GPIO_NORMAL,
         DISABLE,
@@ -121,12 +122,17 @@ void ZHAL_SPI_Driver_Close () {
         DISABLE
     };
 
-    ZHAL_SPI_Driver_Data.Status = SPI_UNITIALIZED;
+    if ((ZHAL_SPI_Driver_Data.Status != SPI_IN_PROGRESS) && (ZHAL_SPI_Driver_Data.Status != SPI_LAST_BYTE)) {
+        ZHAL_SPI_Driver_Data.Status = SPI_UNITIALIZED;
 
-    ZHAL_SPI_Disable(ZHAL_SPI_0);
-    ZHAL_Set_Interrupts(ZHAL_IRQ_SPI, ZHAL_IRQ_DISABLED);
+        ZHAL_SPI_Disable(ZHAL_SPI_0);
+        ZHAL_Set_Interrupts(ZHAL_IRQ_SPI, ZHAL_IRQ_DISABLED);
 
-    ZHAL_GPIO_Config_Pin(ZHAL_GPIO_C,  GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5, &gpio_config); // MISO, MOSI, SCK, respectively
+        ZHAL_GPIO_Config_Pin(ZHAL_GPIO_C,  GPIO_PIN_1 | GPIO_PIN_4 | GPIO_PIN_5, &gpio_config); // MISO, MOSI, SCK, respectively
+
+        status = TRUE;
+    }
+    return (status);
 }
 
 

@@ -60,8 +60,10 @@ uint8_t ZHAL_FIFO_Get_Bytes (ZHAL_FIFO_t * fifo, uint8_t * data, uint8_t bytes) 
     }
 
     for (i = 0; (i < bytes) && (i < bytes_available); i++) {
-        *data = fifo->Data[fifo->Tail];
-        data++;
+        if (data != NULL) {
+            *data = fifo->Data[fifo->Tail];
+            data++;
+        }
         fifo->Tail++;
         if (fifo->Tail >= fifo->Size) {
             fifo->Tail = 0;
