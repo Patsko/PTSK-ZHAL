@@ -11,18 +11,20 @@
 #include "zhal_spi_driver.h"
 #include "zhal_drivers.h"
 
+
 typedef enum {
     SPI_UNITIALIZED = 0,
     SPI_IDLE,
-    SPI_IN_PROGRESS,
-    SPI_LAST_BYTE
+    SPI_IN_PROGRESS
 } SPI_Driver_Status;
 
 
 static struct {
     ZHAL_SPI_Driver_Config_t Config;
     SPI_Driver_Status Status;
+    uint8_t Bytes;
 } ZHAL_SPI_Driver_Data;
+
 
 static ZHAL_FIFO_t ZHAL_SPI_Rx_FIFO;
 static ZHAL_FIFO_t ZHAL_SPI_Tx_FIFO;
@@ -38,30 +40,30 @@ static void ZHAL_SPI_Driver_ISR_Callback (ZHAL_SPI_ISR_Callback_Arg_t isr) {
     uint8_t data;
 
     switch (isr) {
-    case DATA_RECEIVED:
+    case ZHAL_SPI_ISR_RX:
         data = ZHAL_SPI_Read(ZHAL_SPI_0);
         ZHAL_FIFO_Put_Bytes(&ZHAL_SPI_Rx_FIFO, &data, 1);
+
         if (ZHAL_SPI_Driver_Data.Config.RxCallback != NULL) {
             (*ZHAL_SPI_Driver_Data.Config.RxCallback)();
         }
 
-        // transmission is finished only after the last byte is received
-        if ((ZHAL_FIFO_Peek(&ZHAL_SPI_Tx_FIFO, NULL) == 0) && (ZHAL_SPI_Driver_Data.Status == SPI_LAST_BYTE)) {
+        // SPI goes to idle only after the last byte is received
+        ZHAL_SPI_Driver_Data.Bytes--;
+        if (ZHAL_SPI_Driver_Data.Bytes == 0) {
+            ZHAL_SPI_Driver_Data.Status = SPI_IDLE;
             ZHAL_GPIO_Set_Output(ZHAL_SPI_Driver_Data.Config.GPIO_Port, ZHAL_SPI_Driver_Data.Config.GPIO_Pin);
             ZHAL_SPI_Driver_Data.Config.GPIO_Port = 0;
             ZHAL_SPI_Driver_Data.Config.GPIO_Pin = 0;
-            ZHAL_SPI_Driver_Data.Status = SPI_IDLE;
 
             if (ZHAL_SPI_Driver_Data.Config.TxCallback != NULL) {
                 (*ZHAL_SPI_Driver_Data.Config.TxCallback)();
             }
         }
         break;
-    case TRANSMISSION_COMPLETE:
-        if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
+    case ZHAL_SPI_ISR_TX:
+        if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) == 1) {
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
-        } else {
-            ZHAL_SPI_Driver_Data.Status = SPI_LAST_BYTE;
         }
         break;
     }
@@ -86,12 +88,13 @@ void ZHAL_SPI_Driver_Init () {
         ZHAL_SPI_MODE_MASTER,
         ZHAL_SPI_POL_PHASE_0,
         DISABLE,
-        50000,
+        ZHAL_SPI_BAUD_RATE,
         ZHAL_SPI_Driver_ISR_Callback
     };
 
     if (ZHAL_SPI_Driver_Data.Status == SPI_UNITIALIZED) {
         ZHAL_SPI_Driver_Data.Status = SPI_IDLE;
+        ZHAL_SPI_Driver_Data.Bytes = 0;
 
         ZHAL_FIFO_Init(&ZHAL_SPI_Rx_FIFO, &ZHAL_SPI_Rx_FIFO_Buffer, ZHAL_SPI_FIFO_SIZE);
         ZHAL_FIFO_Init(&ZHAL_SPI_Tx_FIFO, &ZHAL_SPI_Tx_FIFO_Buffer, ZHAL_SPI_FIFO_SIZE);
@@ -122,7 +125,7 @@ bool_t ZHAL_SPI_Driver_Close () {
         DISABLE
     };
 
-    if ((ZHAL_SPI_Driver_Data.Status != SPI_IN_PROGRESS) && (ZHAL_SPI_Driver_Data.Status != SPI_LAST_BYTE)) {
+    if (ZHAL_SPI_Driver_Data.Status != SPI_IN_PROGRESS) {
         ZHAL_SPI_Driver_Data.Status = SPI_UNITIALIZED;
 
         ZHAL_SPI_Disable(ZHAL_SPI_0);
@@ -157,9 +160,12 @@ uint8_t ZHAL_SPI_Driver_Put_Data (void * data, uint8_t bytes) {
  */
 void ZHAL_SPI_Driver_Send_Data (const ZHAL_SPI_Driver_Config_t * config) {
     uint8_t data;
+    uint8_t i;
 
     if (ZHAL_SPI_Driver_Data.Status == SPI_IDLE) {
-        if (ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1) != 0) {
+        ZHAL_SPI_Driver_Data.Bytes = ZHAL_FIFO_Peek(&ZHAL_SPI_Tx_FIFO, NULL);
+
+        if (ZHAL_SPI_Driver_Data.Bytes != 0) {
             ZHAL_SPI_Driver_Data.Status = SPI_IN_PROGRESS;
             ZHAL_SPI_Driver_Data.Config.GPIO_Port = config->GPIO_Port;
             ZHAL_SPI_Driver_Data.Config.GPIO_Pin = config->GPIO_Pin;
@@ -167,6 +173,7 @@ void ZHAL_SPI_Driver_Send_Data (const ZHAL_SPI_Driver_Config_t * config) {
             ZHAL_SPI_Driver_Data.Config.TxCallback = config->TxCallback;
             ZHAL_GPIO_Reset_Output(ZHAL_SPI_Driver_Data.Config.GPIO_Port, ZHAL_SPI_Driver_Data.Config.GPIO_Pin);
 
+            ZHAL_FIFO_Get_Bytes(&ZHAL_SPI_Tx_FIFO, &data, 1);
             ZHAL_SPI_Send(ZHAL_SPI_0, data);
         }
     }
@@ -191,6 +198,19 @@ uint8_t ZHAL_SPI_Driver_Peek (void * data) {
 
     bytes = ZHAL_FIFO_Peek(&ZHAL_SPI_Rx_FIFO, data);
     return (bytes);
+}
+
+/*
+ * ZHAL_SPI_Driver_Is_Available
+ * Returns TRUE if SPI driver is available for use
+ */
+bool_t ZHAL_SPI_Driver_Is_Available () {
+
+    if (ZHAL_SPI_Driver_Data.Status == SPI_IDLE) {
+        return (TRUE);
+    } else {
+        return (FALSE);
+    }
 }
 
 

@@ -42,10 +42,8 @@ typedef enum ZHAL_SPI_PolPhase {
 } ZHAL_SPI_PolPhase_t;
 
 typedef enum ZHAL_SPI_ISR_Callback_Arg {
-    TRANSMISSION_COMPLETE = 1,
-    DATA_RECEIVED,
-    ERROR_DETECTED,
-    BREAK_DETECTED,
+    ZHAL_SPI_ISR_TX = 1,
+    ZHAL_SPI_ISR_RX,
 } ZHAL_SPI_ISR_Callback_Arg_t;
 
 typedef struct ZHAL_SPI_Config {

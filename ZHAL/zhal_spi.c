@@ -134,18 +134,17 @@ void ZHAL_SPI_Send (ZHAL_SPI_Port_t port, uint8_t data) {
 
 
 void interrupt ZHAL_SPI_0_ISR () _At SPI {
-    uint8_t status = 0;
 
     if ((ESPISTAT & 0x04) != 0) {   // RDRNE bit set
-        status = DATA_RECEIVED;
-    } else if ((ESPISTAT & 0x80) != 0) {
-        status = TRANSMISSION_COMPLETE;
-    } else {
-        status = ERROR_DETECTED;
+        if (ZHAL_Callback_fp[ZHAL_SPI_0] != NULL) {
+            (*ZHAL_Callback_fp)(ZHAL_SPI_ISR_RX);
+        }
     }
-
-    if (ZHAL_Callback_fp[ZHAL_SPI_0] != NULL) {
-        (*ZHAL_Callback_fp)(status);
+    if ((ESPISTAT & 0x80) != 0) {   // TDRE bit set
+        if (ZHAL_Callback_fp[ZHAL_SPI_0] != NULL) {
+            (*ZHAL_Callback_fp)(ZHAL_SPI_ISR_TX);
+        }
     }
+    // error statuses (overrun, underrun, etc) are not treated yet
 }
 
