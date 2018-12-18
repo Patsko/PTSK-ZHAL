@@ -13,6 +13,7 @@
  */
 void ZHAL_Init () {
 
+    ZHAL_Watchdog_Config();
     ZHAL_Systick_Init();
     EI();
 }

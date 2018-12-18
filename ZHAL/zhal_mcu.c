@@ -90,4 +90,21 @@ void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority) {
     EI();
 }
 
+/*
+ * ZHAL_Watchdog_Config
+ */
+void ZHAL_Watchdog_Config () {
+#if WATCHDOG_ENABLE
+    WDTHL = WATCHDOG_TIMEOUT;
+    asm("WDT");
+#endif
+}
 
+/*
+ * ZHAL_Watchdog_Reset
+ */
+void ZHAL_Watchdog_Reset () {
+#if WATCHDOG_ENABLE
+    asm("WDT");
+#endif
+}

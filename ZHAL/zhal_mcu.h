@@ -36,6 +36,8 @@
 #define IRQ_PC1_MASK        0x02
 #define IRQ_PC0_MASK        0x01
 
+#define WATCHDOG_ENABLE     0
+#define WATCHDOG_TIMEOUT    0x400   // Reset default value time-out delay: 0x400
 
 /*
  * Typedefs
@@ -79,6 +81,7 @@ typedef enum ZHAL_IRQ {
  */
 
 void ZHAL_Set_Interrupts (ZHAL_IRQ_t interr, ZHAL_IRQ_Priority_t priority);
-
+void ZHAL_Watchdog_Config (void);
+void ZHAL_Watchdog_Reset (void);
 
 #endif // ZHAL_IRQ_H
