@@ -13,7 +13,7 @@
  * Application defines
  */
 
-#define ZHAL_SPI_FIFO_SIZE      75
+#define ZHAL_SPI_FIFO_SIZE      100
 
 #define ZHAL_SPI_BAUD_RATE      50000
 
