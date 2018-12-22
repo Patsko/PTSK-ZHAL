@@ -36,9 +36,6 @@
 #define IRQ_PC1_MASK        0x02
 #define IRQ_PC0_MASK        0x01
 
-#define WATCHDOG_ENABLE     0
-#define WATCHDOG_TIMEOUT    0x400   // Reset default value time-out delay: 0x400
-
 /*
  * Typedefs
  */

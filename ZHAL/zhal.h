@@ -6,6 +6,9 @@
 #ifndef ZHAL_H  // include guard
 #define ZHAL_H
 
+// you should provide a zhal_config header file, based on zhal_config_example.h
+#include "zhal_config.h"
+
 /*
  * Typedefs
  */
@@ -41,13 +44,6 @@ typedef enum Enable_enum {
  * Compilation defines
  */
 
-#define ZHAL_USE_GPIO           1
-#define ZHAL_USE_TIMER          1
-#define ZHAL_USE_UART           1
-#define ZHAL_USE_UART_DRIVER    1
-#define ZHAL_USE_SPI            1
-#define ZHAL_USE_SPI_DRIVER     1
-
 #if ZHAL_USE_GPIO
 #include "zhal_gpio.h"
 #endif
@@ -78,10 +74,6 @@ typedef enum Enable_enum {
 /*
  * System defines
  */
-
-#define SYSTEM_CLOCK        11059200    // MCU clock in Hz
-
-#define SYSTICK_TIMER       ZHAL_TIMER_0
 
 #define MAX_UINT32          0xFFFFFFFF
 #define MAX_UINT16          0xFFFF
